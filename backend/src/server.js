@@ -1,4 +1,4 @@
-const { app_config } = require('../env')
+const { app_config } = require('../src/config/env')
 const app = require('./app');
 
 const port = app_config.port || 3015;

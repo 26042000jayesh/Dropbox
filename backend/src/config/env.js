@@ -10,7 +10,8 @@ const {
     DB_USER,
     DB_PASSWORD,
     DB_NAME,
-    DB_PORT
+    DB_PORT,
+    JWT_SECRET
 } = process.env;
 
 if (!APP_PORT || !DB_HOST || !DB_USER || !DB_PASSWORD || !DB_NAME ||!DB_PORT) {
@@ -26,5 +27,8 @@ module.exports = {
         password: DB_PASSWORD,
         name: DB_NAME,
         port: DB_PORT
+    },
+    auth_config:{
+        jwt_secret: JWT_SECRET
     }
 };
