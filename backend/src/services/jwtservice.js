@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
 const { auth_config } = require('../config/env')
 
-function signJwt(data) {
+function signJwt(data, exipiry_time = 60 * 60 * 24) {
     try {
-        const token = jwt.sign(data, auth_config.jwt_secret, { expiresIn: 60 * 60 * 24 });
+        const token = jwt.sign(data, auth_config.jwt_secret, { expiresIn: exipiry_time });
         return token;
     } catch {
         return null;
