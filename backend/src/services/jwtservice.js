@@ -18,11 +18,11 @@ function verifyJWT(req, res, next) {
             });
         }
         const token = req.headers.authorization.split(' ')[1];
-        const user = jwt.verify(token, jwt_secret);
+        const user = jwt.verify(token, auth_config.jwt_secret);
         req.user = user;
         next();
     } catch {
-        res.status(401).json({
+        return res.status(401).json({
             status_code: 401,
             message: "Unauthorized!"
         });

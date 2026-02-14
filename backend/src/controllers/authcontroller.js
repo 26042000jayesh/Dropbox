@@ -15,7 +15,6 @@ async function signup(req, res){
             data: result
         });
     } catch (err) {
-        console.log(err)
         return res.status(400).json({ status_code: 400 ,message: err.message });
     }
 }
@@ -34,7 +33,6 @@ async function login(req, res){
             data: result
         });
     } catch (err) {
-        console.log(err)
         return res.status(401).json({ status_code: 401 ,message: err.message });
     }
 }
