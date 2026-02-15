@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
-const { PutObjectCommand, GetObjectCommand, HeadObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
+const { PutObjectCommand, GetObjectCommand, HeadObjectCommand, DeleteObjectCommand, CreateBucketCommand, HeadBucketCommand } = require("@aws-sdk/client-s3");
 const { S3Client } = require("@aws-sdk/client-s3");
 const { aws_config } = require('../config/env')
 const BUCKET = aws_config.bucket_name
@@ -10,8 +10,25 @@ const queryService = require('./queryservice')
 async function getS3Client() {
     return new S3Client({
         region: aws_config.aws_region,
-        endpoint: "http://localhost:4566", // remove in prod
-        forcePathStyle: true,
+        ...(aws_config.endpoint && {
+            endpoint: aws_config.endpoint,
+            forcePathStyle: true
+        }),
+        credentials: {
+            accessKeyId: aws_config.aws_access_key,
+            secretAccessKey: aws_config.aws_secret_key,
+        },
+    });
+}
+
+// Separate client for generating presigned URLs (uses public endpoint reachable by browser)
+async function getPublicS3Client() {
+    return new S3Client({
+        region: aws_config.aws_region,
+        ...(aws_config.public_endpoint && {
+            endpoint: aws_config.public_endpoint,
+            forcePathStyle: true
+        }),
         credentials: {
             accessKeyId: aws_config.aws_access_key,
             secretAccessKey: aws_config.aws_secret_key,
@@ -24,6 +41,15 @@ function generateFileKey(user_id, file_name) {
     return `users/${user_id}/${unique_id}-${file_name}`;
 }
 
+async function ensureBucket() {
+    const s3 = await getS3Client();
+    try {
+        await s3.send(new HeadBucketCommand({ Bucket: BUCKET }));
+    } catch {
+        await s3.send(new CreateBucketCommand({ Bucket: BUCKET }));
+        console.log(`Bucket ${BUCKET} created`);
+    }
+}
 
 async function generateUploadUrl(user_id, file_name, content_type, size) {
 
@@ -31,7 +57,7 @@ async function generateUploadUrl(user_id, file_name, content_type, size) {
         return null;
     }
 
-    const s3 = await getS3Client()
+    const s3 = await getPublicS3Client()
 
     const key = generateFileKey(user_id, file_name);
 
@@ -75,7 +101,7 @@ async function generateDownloadUrl(user_id, file_id) {
         throw err;
     }
 
-    const s3 = await getS3Client()
+    const s3 = await getPublicS3Client()
 
     const command = new GetObjectCommand({
         Bucket: BUCKET,
@@ -263,5 +289,6 @@ module.exports = {
     confirmUpload,
     listFiles,
     deleteFile,
-    renameFile
+    renameFile,
+    ensureBucket
 }
