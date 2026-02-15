@@ -58,13 +58,28 @@ async function generateUploadUrl(user_id, file_name, content_type, size) {
     return { upload_url, key, file_id: result.insertId };
 }
 
-async function generateDownloadUrl(key) {
+async function generateDownloadUrl(user_id, file_id) {
+
+    const [file] = await queryService.query(
+        `SELECT object_key 
+         FROM files 
+         WHERE id = ? 
+         AND user_id = ? 
+         AND status = 'ACTIVE'`,
+        [file_id, user_id]
+    );
+
+    if (!file) {
+        const err = new Error("File not found");
+        err.statusCode = 404;
+        throw err;
+    }
 
     const s3 = await getS3Client()
 
     const command = new GetObjectCommand({
         Bucket: BUCKET,
-        Key: key,
+        Key: file.object_key,
     });
 
     const download_url = await getSignedUrl(s3, command, {

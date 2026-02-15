@@ -7,7 +7,7 @@ const uploadUrlSchema = Joi.object({
 });
 
 const downloadUrlSchema = Joi.object({
-    key: Joi.string().required()
+    file_id: Joi.number().required()
 });
 
 const confirmUploadSchema = Joi.object({

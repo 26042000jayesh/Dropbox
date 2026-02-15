@@ -43,9 +43,9 @@ async function getDownloadUrl(req, res) {
             return res.status(400).json({ status_code: 400, message: error.details[0].message });
         }
 
-        const { key } = value;
-
-        const result = await objectStorageService.generateDownloadUrl(key);
+        const { file_id } = value;
+        const user_id = req.user.user_id
+        const result = await objectStorageService.generateDownloadUrl(user_id, file_id);
 
         return res.status(200).json({
             status_code: 200,
