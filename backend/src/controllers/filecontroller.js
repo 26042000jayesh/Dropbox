@@ -114,9 +114,41 @@ async function listFiles(req, res) {
     }
 }
 
+async function deleteFile(req, res) {
+    try {
+        const { error, value } = fileValidations.deleteFileSchema.validate(req.body);
+
+        if (error) {
+            return res.status(400).json({
+                status_code: 400,
+                message: error.details[0].message
+            });
+        }
+
+        const { file_id } = value;
+        const user_id = req.user.user_id;
+
+        const result = await objectStorageService.deleteFile(user_id, file_id);
+
+        return res.status(200).json({
+            status_code: 200,
+            message: "File deleted successfully",
+            data: result,
+        });
+
+    } catch (err) {
+        return res.status(err.statusCode || 500).json({
+            status_code: err.statusCode || 500,
+            message: err.message
+        });
+    }
+}
+
+
 module.exports = {
     getUploadUrl,
     getDownloadUrl,
     confirmUpload,
-    listFiles
+    listFiles,
+    deleteFile
 }

@@ -20,9 +20,15 @@ const listFilesSchema = Joi.object({
     search: Joi.string().allow("").optional()
 });
 
+const deleteFileSchema = Joi.object({
+    file_id: Joi.number().required()
+});
+
+
 module.exports = {
     uploadUrlSchema,
     downloadUrlSchema,
     confirmUploadSchema,
-    listFilesSchema
+    listFilesSchema,
+    deleteFileSchema
 };

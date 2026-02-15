@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
-const { PutObjectCommand, GetObjectCommand, HeadObjectCommand } = require("@aws-sdk/client-s3");
+const { PutObjectCommand, GetObjectCommand, HeadObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
 const { S3Client } = require("@aws-sdk/client-s3");
 const { aws_config } = require('../config/env')
 const BUCKET = aws_config.bucket_name
@@ -168,10 +168,54 @@ async function listFiles(user_id, page = 1, limit = 10, search = "") {
 }
 
 
+async function deleteFile(user_id, file_id) {
+
+    const [file] = await queryService.query(
+        `SELECT object_key 
+         FROM files 
+         WHERE id = ? 
+         AND user_id = ? 
+         AND status = 'ACTIVE'`,
+        [file_id, user_id]
+    );
+
+    if (!file) {
+        const err = new Error("File not found or already deleted");
+        err.statusCode = 404;
+        throw err;
+    }
+    const s3 = await getS3Client();
+    const command = new DeleteObjectCommand({
+        Bucket: BUCKET,
+        Key: file.object_key,
+    });
+    try {
+        await s3.send(command);
+    } catch (e) {
+        console.log(e)
+        const err = new Error("Failed to delete file from storage");
+        err.statusCode = 500;
+        throw err;
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+
+    await queryService.query(
+        `UPDATE files 
+         SET status = 'DELETED', updated_dt = ?
+         WHERE id = ?`,
+        [now, file_id]
+    );
+
+    return { file_id };
+}
+
+
 module.exports = {
     getS3Client,
     generateDownloadUrl,
     generateUploadUrl,
     confirmUpload,
-    listFiles
+    listFiles,
+    deleteFile
 }
