@@ -3,17 +3,26 @@ const objectStorageService = require('../services/objectstorageservice')
 
 async function getUploadUrl(req, res) {
     try {
+        console.log(req.body)
         const { error, value } = fileValidations.uploadUrlSchema.validate(req.body);
         if (error) {
-            return res.status(400).json({ status_code: 400, message: error.details[0].message });
+            return res.status(200).json({ status_code: 400, message: error.details[0].message });
         }
-        const { file_name, content_type } = value;
+        const { file_name, content_type, size } = value;
         const user_id = req.user.user_id
         const result = await objectStorageService.generateUploadUrl(
             user_id,
             file_name,
-            content_type
+            content_type,
+            size
         );
+        if(!result){
+            return res.status(200).json({
+                status_code: 400,
+                message: "File type not supported",
+                data: result,
+            });
+        }
         return res.status(200).json({
             status_code: 200,
             message: "Upload URL generated",

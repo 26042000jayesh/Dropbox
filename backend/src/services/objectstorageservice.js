@@ -4,6 +4,8 @@ const { PutObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
 const { S3Client } = require("@aws-sdk/client-s3");
 const {aws_config} = require('../config/env')
 const BUCKET = aws_config.bucket_name
+const {ALLOWED_FILE_TYPES} = require('../constants/filetypes')
+const queryService = require('./queryservice')
 
 async function getS3Client() {
     return new S3Client({
@@ -23,19 +25,35 @@ function generateFileKey(user_id, file_name) {
 }
 
 
-async function generateUploadUrl(user_id, file_name, content_type) {
+async function generateUploadUrl(user_id, file_name, content_type, size) {
+
+    if(ALLOWED_FILE_TYPES.includes(content_type)==false){
+        return null;
+    }
+
     const s3 = await getS3Client()
+
     const key = generateFileKey(user_id, file_name);
 
     const command = new PutObjectCommand({
         Bucket: BUCKET,
         Key: key,
         ContentType: content_type,
+        ContentLength: size
     });
 
     const upload_url = await getSignedUrl(s3, command, {
         expiresIn: 300,
     });
+
+    const now = Date.now();
+
+    await queryService.query(
+        `INSERT INTO files 
+        (user_id, object_key, original_name, content_type, size, status, created_dt, updated_dt)
+        VALUES (?, ?, ?, ?, ?, 'UPLOADING', ?, ?)`,
+        [user_id, key, file_name, content_type, size, now, now]
+    );
 
     return { upload_url, key };
 }
