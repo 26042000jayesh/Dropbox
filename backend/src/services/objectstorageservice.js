@@ -211,11 +211,57 @@ async function deleteFile(user_id, file_id) {
 }
 
 
+async function renameFile(user_id, file_id, new_name) {
+
+    const [file] = await queryService.query(
+        `SELECT id 
+         FROM files 
+         WHERE id = ? 
+         AND user_id = ? 
+         AND status = 'ACTIVE'`,
+        [file_id, user_id]
+    );
+
+    if (!file) {
+        const err = new Error("File not found");
+        err.statusCode = 404;
+        throw err;
+    }
+
+    const [duplicate] = await queryService.query(
+        `SELECT id FROM files
+         WHERE user_id = ?
+         AND original_name = ?
+         AND status = 'ACTIVE'
+         AND id != ?`,
+        [user_id, new_name, file_id]
+    );
+
+    if (duplicate) {
+        const err = new Error("File with same name already exists");
+        err.statusCode = 400;
+        throw err;
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+
+    await queryService.query(
+        `UPDATE files 
+         SET original_name = ?, updated_dt = ?
+         WHERE id = ?`,
+        [new_name, now, file_id]
+    );
+
+    return { file_id, new_name };
+}
+
+
 module.exports = {
     getS3Client,
     generateDownloadUrl,
     generateUploadUrl,
     confirmUpload,
     listFiles,
-    deleteFile
+    deleteFile,
+    renameFile
 }

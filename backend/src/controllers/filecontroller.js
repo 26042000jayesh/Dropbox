@@ -144,11 +144,46 @@ async function deleteFile(req, res) {
     }
 }
 
+async function renameFile(req, res) {
+    try {
+        const { error, value } = fileValidations.renameFileSchema.validate(req.body);
+
+        if (error) {
+            return res.status(400).json({
+                status_code: 400,
+                message: error.details[0].message
+            });
+        }
+
+        const { file_id, new_name } = value;
+        const user_id = req.user.user_id;
+
+        const result = await objectStorageService.renameFile(
+            user_id,
+            file_id,
+            new_name
+        );
+
+        return res.status(200).json({
+            status_code: 200,
+            message: "File renamed successfully",
+            data: result
+        });
+
+    } catch (err) {
+        return res.status(err.statusCode || 500).json({
+            status_code: err.statusCode || 500,
+            message: err.message
+        });
+    }
+}
+
 
 module.exports = {
     getUploadUrl,
     getDownloadUrl,
     confirmUpload,
     listFiles,
-    deleteFile
+    deleteFile,
+    renameFile
 }

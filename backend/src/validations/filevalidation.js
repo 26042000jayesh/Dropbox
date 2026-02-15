@@ -24,11 +24,17 @@ const deleteFileSchema = Joi.object({
     file_id: Joi.number().required()
 });
 
+const renameFileSchema = Joi.object({
+    file_id: Joi.number().required(),
+    new_name: Joi.string().min(1).max(255).required()
+});
+
 
 module.exports = {
     uploadUrlSchema,
     downloadUrlSchema,
     confirmUploadSchema,
     listFilesSchema,
-    deleteFileSchema
+    deleteFileSchema,
+    renameFileSchema
 };
