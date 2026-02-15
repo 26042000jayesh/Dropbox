@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/dropbox': 'http://localhost:6969',
+      '/dropbox': 'http://localhost:3015',
     },
   },
 })
