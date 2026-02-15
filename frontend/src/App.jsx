@@ -1,14 +1,25 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Routes, Route } from "react-router-dom";
+
+function LoginPage() {
+  return <h2>Login Page</h2>;
+}
+
+function SignupPage() {
+  return <h2>Signup Page</h2>;
+}
+
+function HomePage() {
+  return <h2>Home Page</h2>;
+}
 
 function App() {
   return (
-    <div>
-      <h1>Dropbox Clone</h1>
-    </div>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
+      <Route path="/" element={<HomePage />} />
+    </Routes>
   );
 }
 
-export default App
+export default App;
