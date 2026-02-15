@@ -1,4 +1,4 @@
-# Dropbox Clone
+# Dropbox
 
 Minimal file upload/download app (React + Express + MySQL + S3/LocalStack).
 
