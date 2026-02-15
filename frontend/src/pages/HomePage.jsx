@@ -41,9 +41,21 @@ function HomePage() {
         e.target.value = "";
     };
 
-    const handleDownload = async (file_id) => {
+    const handleDownload = async (file_id, filename) => {
         const result = await dispatch(getDownloadUrl(file_id));
-        if (result.meta.requestStatus === "fulfilled") {
+        if (result.meta.requestStatus !== "fulfilled") return;
+        try {
+            const res = await fetch(result.payload.download_url);
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename || "download";
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+        } catch {
             window.open(result.payload.download_url, "_blank");
         }
     };
@@ -111,7 +123,7 @@ function HomePage() {
                                     {/* View file contents */}
                                     <IconButton onClick={() => navigate(`/view/${file.id}`)}><Visibility /></IconButton>
                                     {/* Download file */}
-                                    <IconButton onClick={() => handleDownload(file.id)}><Download /></IconButton>
+                                    <IconButton onClick={() => handleDownload(file.id, file.original_name)}><Download /></IconButton>
                                     {/* Rename file */}
                                     <IconButton onClick={() => openRename(file.id, file.original_name)}><Edit /></IconButton>
                                     {/* Delete file */}
