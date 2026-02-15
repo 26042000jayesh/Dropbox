@@ -112,9 +112,51 @@ async function confirmUpload(user_id, file_id) {
     };
 }
 
+async function listFiles(user_id, page = 1, limit = 10, search = "") {
+    page = Number(page);
+    limit = Number(limit);
+    const offset = (page - 1) * limit;
+
+    let whereClause = `WHERE user_id = ? AND status = 'ACTIVE'`;
+    let values = [user_id];
+
+    if (search) {
+        whereClause += ` AND original_name LIKE ?`;
+        values.push(`%${search}%`);
+    }
+
+    const [countResult] = await queryService.query(
+        `SELECT COUNT(*) as total FROM files ${whereClause}`,
+        values
+    );
+
+    const total = countResult.total;
+    console.log([...values, limit, offset])
+    const files = await queryService.query(
+        `SELECT id, original_name, content_type, size, created_dt
+         FROM files
+         ${whereClause}
+         ORDER BY created_dt DESC
+         LIMIT ${limit} OFFSET ${offset}`,
+        values
+    );
+
+    return {
+        files,
+        pagination: {
+            page,
+            limit,
+            total,
+            total_pages: Math.ceil(total / limit)
+        }
+    };
+}
+
+
 module.exports = {
     getS3Client,
     generateDownloadUrl,
     generateUploadUrl,
-    confirmUpload
+    confirmUpload,
+    listFiles
 }

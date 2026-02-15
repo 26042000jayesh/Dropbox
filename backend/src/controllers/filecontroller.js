@@ -29,8 +29,10 @@ async function getUploadUrl(req, res) {
             data: result,
         });
     } catch (err) {
-        console.log(err)
-        return res.status(500).json({ status_code: 500, message: err.message });
+        return res.status(err.statusCode || 500).json({
+            status_code: err.statusCode || 500,
+            message: err.message
+        });
     }
 }
 
@@ -50,8 +52,11 @@ async function getDownloadUrl(req, res) {
             message: "Download URL generated",
             data: result,
         });
-    } catch (error) {
-        return res.status(500).json({ status_code: 500, message: err.message });
+    } catch (err) {
+        return res.status(err.statusCode || 500).json({
+            status_code: err.statusCode || 500,
+            message: err.message
+        });
     }
 }
 
@@ -72,13 +77,46 @@ async function confirmUpload(req, res) {
             data: result,
         });
     } catch (err) {
-        return res.status(500).json({ status_code: 500, message: err.message });
+        return res.status(err.statusCode || 500).json({
+            status_code: err.statusCode || 500,
+            message: err.message
+        });
     }
 }
 
+async function listFiles(req, res) {
+    try {
+        const { error, value } = fileValidations.listFilesSchema.validate(req.body);
+
+        if (error) {
+            return res.status(400).json({
+                status_code: 400,
+                message: error.details[0].message
+            });
+        }
+
+        const { page, limit, search } = value;
+        const user_id = req.user.user_id;
+
+        const result = await objectStorageService.listFiles(user_id, page, limit,search);
+
+        return res.status(200).json({
+            status_code: 200,
+            message: "Files fetched successfully",
+            data: result
+        });
+
+    } catch (err) {
+        return res.status(err.statusCode || 500).json({
+            status_code: err.statusCode || 500,
+            message: err.message
+        });
+    }
+}
 
 module.exports = {
     getUploadUrl,
     getDownloadUrl,
-    confirmUpload
+    confirmUpload,
+    listFiles
 }

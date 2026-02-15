@@ -14,9 +14,15 @@ const confirmUploadSchema = Joi.object({
     file_id: Joi.number().integer().positive().max(Number.MAX_SAFE_INTEGER).required()
 });
 
+const listFilesSchema = Joi.object({
+    page: Joi.number().min(1).default(1),
+    limit: Joi.number().min(1).max(50).default(10),
+    search: Joi.string().allow("").optional()
+});
 
 module.exports = {
     uploadUrlSchema,
     downloadUrlSchema,
-    confirmUploadSchema
+    confirmUploadSchema,
+    listFilesSchema
 };
