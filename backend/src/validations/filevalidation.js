@@ -10,7 +10,13 @@ const downloadUrlSchema = Joi.object({
     key: Joi.string().required()
 });
 
+const confirmUploadSchema = Joi.object({
+    file_id: Joi.number().integer().positive().max(Number.MAX_SAFE_INTEGER).required()
+});
+
+
 module.exports = {
     uploadUrlSchema,
-    downloadUrlSchema
+    downloadUrlSchema,
+    confirmUploadSchema
 };

@@ -55,7 +55,30 @@ async function getDownloadUrl(req, res) {
     }
 }
 
+async function confirmUpload(req, res) {
+    try {
+        const { error, value } = fileValidations.confirmUploadSchema.validate(req.body);
+        if (error) {
+            return res.status(400).json({ status_code: 400, message: error.details[0].message });
+        }
+
+        const { file_id } = value;
+        const user_id = req.user.user_id
+        const result = await objectStorageService.confirmUpload(user_id, file_id);
+
+        return res.status(200).json({
+            status_code: 200,
+            message: "Download URL generated",
+            data: result,
+        });
+    } catch (err) {
+        return res.status(500).json({ status_code: 500, message: err.message });
+    }
+}
+
+
 module.exports = {
     getUploadUrl,
-    getDownloadUrl
+    getDownloadUrl,
+    confirmUpload
 }
